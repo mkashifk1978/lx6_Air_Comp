@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>LX6 Air Compressor Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(to bottom right, #e0f7fa, #ffffff);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      color: #333;
+      height: 100vh;
+    }
+
+    .card {
+      margin: 40px 20px;
+      background: #ffffff;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.1);
+      max-width: 700px;
+      width: 100%;
+      text-align: center;
+      transition: transform 0.3s;
+    }
+
+    .card:hover {
+      transform: scale(1.02);
+    }
+
+    h2 {
+      color: #007acc;
+      font-size: 32px;
+      margin-bottom: 20px;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+
+    .reading {
+      font-size: 22px;
+      margin: 15px 0;
+      padding: 10px;
+      border: 1px solid #007acc;
+      border-radius: 10px;
+      background-color: #f1f8ff;
+    }
+
+    .reading span {
+      font-weight: bold;
+      color: #0d47a1;
+    }
+
+    iframe {
+      margin-top: 30px;
+      width: 100%;
+      height: 300px;
+      border: none;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    @media (max-width: 600px) {
+      .card {
+        padding: 20px;
+      }
+      h2 {
+        font-size: 24px;
+      }
+      .reading {
+        font-size: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h2>💨 LX6 Air Compressor Dashboard</h2>
+
+
+    <h1>ZH500 Air Compressor</h1>
+    <img src="https://i.ibb.co/zhbmQKf7/zh500.png" alt="ZH500 Air Compressor" />
+
+
+
+    <div class="reading">Flowrate: <span id="flowrate">--</span></div>
+    <div class="reading">Today's Flow Total: <span id="today">--</span></div>
+    <div class="reading">Yesterday's Flow Total: <span id="yesterday">--</span></div>
+    <div class="reading">Flow per Minute: <span id="perMinute">--</span></div>
+
+  <!-- Centered Chart -->
+  <iframe 
+    src="https://thingspeak.mathworks.com/channels/3005514/charts/6?bgcolor=%23ffffff&color=%23d62020&dynamic=true&results=60&title=Flowrate&type=line"
+    allowfullscreen>
+  </iframe>
+
+
+
+  <script>
+    const channelID = 3005514;
+    const readAPIKey = "WVCD3100F33WOUWW";
+    const url = `https://api.thingspeak.com/channels/${channelID}/feeds.json?api_key=${readAPIKey}&results=5`;
+
+    fetch(url)
+      .then(response => response.json())
+      .then(data => {
+        const latest = data.feeds.reverse().find(f => f.field6 && f.field7 && f.field8);
+        if (!latest) return;
+
+        const flowrate = parseFloat(latest.field6) || 0;
+        const todayTotal = parseFloat(latest.field7) || 0;
+        const yesterdayTotal = parseFloat(latest.field8) || 0;
+        const perMinute = flowrate > 0 ? (flowrate / 60).toFixed(2) : "0.00";
+
+        document.getElementById("flowrate").innerText = flowrate.toFixed(2) + " m³/h";
+        document.getElementById("perMinute").innerText = perMinute + " m³/min";
+        document.getElementById("today").innerText = todayTotal.toFixed(2) + " m³";
+        document.getElementById("yesterday").innerText = yesterdayTotal.toFixed(2) + " m³";
+      })
+      .catch(err => console.error("Error fetching data:", err));
+  </script>
+
+</body>
+</html>
